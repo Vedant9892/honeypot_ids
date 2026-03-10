@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Honeypot IDS Dashboard</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f5f4ef;
+            --panel: #fffdf8;
+            --ink: #16202a;
+            --muted: #5d6a74;
+            --accent: #9b2226;
+            --border: #d8d3c8;
+            --warning: #bc6c25;
+        }
+
+        body {
+            margin: 0;
+            font-family: Georgia, "Times New Roman", serif;
+            background: radial-gradient(circle at top left, #fff7db 0%, var(--bg) 45%, #e9ecef 100%);
+            color: var(--ink);
+        }
+
+        header {
+            padding: 2rem;
+            border-bottom: 1px solid var(--border);
+            background: rgba(255, 253, 248, 0.9);
+            backdrop-filter: blur(10px);
+        }
+
+        main {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        section {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 1rem;
+            box-shadow: 0 10px 30px rgba(22, 32, 42, 0.08);
+        }
+
+        h1, h2 {
+            margin-top: 0;
+        }
+
+        .event {
+            border-top: 1px solid var(--border);
+            padding: 0.75rem 0;
+        }
+
+        .event:first-child {
+            border-top: 0;
+            padding-top: 0;
+        }
+
+        .pill {
+            display: inline-block;
+            padding: 0.2rem 0.55rem;
+            border-radius: 999px;
+            background: #f7d7c4;
+            color: var(--accent);
+            font-size: 0.85rem;
+            margin-right: 0.4rem;
+        }
+
+        .meta {
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            word-break: break-word;
+            background: #f3efe7;
+            padding: 0.75rem;
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Multi-Service Honeypot IDS Dashboard</h1>
+        <p>Recent attacks, centralized telemetry, and latest model output.</p>
+    </header>
+    <main>
+        <section>
+            <h2>Detected Threats</h2>
+            {% if threats %}
+                {% for event in threats %}
+                    <div class="event">
+                        <span class="pill">{{ event.attack_type }}</span>
+                        <strong>{{ event.service }}</strong>
+                        <div class="meta">{{ event.timestamp }} | {{ event.source_ip }}</div>
+                        <pre>{{ event.payload }}</pre>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No threats recorded yet.</p>
+            {% endif %}
+        </section>
+        <section>
+            <h2>Latest IDS Prediction</h2>
+            {% if prediction %}
+                <pre>{{ prediction | tojson(indent=2) }}</pre>
+            {% else %}
+                <p>No prediction cached yet.</p>
+            {% endif %}
+        </section>
+        <section>
+            <h2>Recent Logs</h2>
+            {% if events %}
+                {% for event in events %}
+                    <div class="event">
+                        <span class="pill">{{ event.event }}</span>
+                        <div class="meta">{{ event.timestamp }} | {{ event.service }} | {{ event.source_ip }}</div>
+                        <pre>{{ event | tojson(indent=2) }}</pre>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No events logged yet.</p>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>

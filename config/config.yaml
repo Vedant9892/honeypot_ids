@@ -1,0 +1,51 @@
+project:
+  name: honeypot_ids
+  environment: research
+
+logging:
+  raw_log_dir: data/raw_logs
+  processed_dir: data/processed
+  file_name: honeypot_events.jsonl
+  dashboard_cache_file: latest_predictions.json
+
+honeypots:
+  ssh:
+    enabled: true
+    host: 0.0.0.0
+    brute_force_threshold: 5
+  ftp:
+    enabled: true
+    host: 0.0.0.0
+    max_cons_per_ip: 5
+  http:
+    enabled: true
+    host: 0.0.0.0
+    anomaly_window_seconds: 60
+    anomaly_request_threshold: 20
+  ransomware:
+    enabled: true
+    watch_path: data/decoy_files
+    rapid_change_threshold: 10
+    suspicious_extensions:
+      - .encrypted
+      - .locked
+      - .cry
+
+ids:
+  batch_size: 32
+  learning_rate: 0.001
+  epochs: 10
+  train_split: 0.8
+  label_map:
+    benign: 0
+    ssh_bruteforce: 1
+    ftp_bruteforce: 2
+    sql_injection: 3
+    xss: 4
+    directory_scanning: 5
+    ransomware_behavior: 6
+
+dashboard:
+  host: 127.0.0.1
+  port: 8050
+  recent_event_limit: 50

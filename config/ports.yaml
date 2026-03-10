@@ -1,0 +1,5 @@
+ports:
+  ssh: 2222
+  ftp: 2121
+  http: 8080
+  dashboard: 8050
