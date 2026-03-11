@@ -11,7 +11,7 @@ if __package__ in {None, ""}:
 
 from honeypot_ids.ids.feature_extraction import FEATURE_COLUMNS, extract_event_features
 from honeypot_ids.ids.models.model import IDSClassifier, build_label_maps
-from honeypot_ids.logging.logger import get_logger
+from honeypot_ids.log_system.logger import get_logger
 
 try:
     import torch

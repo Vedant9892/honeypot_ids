@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from honeypot_ids.logging.log_config import load_project_config
+from honeypot_ids.log_system.log_config import load_project_config
 
 try:
     import torch.nn as nn

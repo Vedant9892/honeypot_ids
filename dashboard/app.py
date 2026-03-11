@@ -10,8 +10,8 @@ from typing import Any
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from honeypot_ids.logging.log_config import get_dashboard_cache_path, load_port_config, load_project_config
-from honeypot_ids.logging.logger import get_logger
+from honeypot_ids.log_system.log_config import get_dashboard_cache_path, load_port_config, load_project_config
+from honeypot_ids.log_system.logger import get_logger
 
 try:
     from flask import Flask, jsonify, render_template

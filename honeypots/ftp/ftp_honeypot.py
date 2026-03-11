@@ -11,8 +11,8 @@ from typing import Any
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
-from honeypot_ids.logging.log_config import PROJECT_ROOT, load_port_config, load_project_config
-from honeypot_ids.logging.logger import get_logger
+from honeypot_ids.log_system.log_config import PROJECT_ROOT, load_port_config, load_project_config
+from honeypot_ids.log_system.logger import get_logger
 
 try:
     from pyftpdlib.authorizers import DummyAuthorizer

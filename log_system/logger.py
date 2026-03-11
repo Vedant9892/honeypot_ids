@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from honeypot_ids.logging.log_config import get_dashboard_cache_path, get_log_file_path
+from honeypot_ids.log_system.log_config import get_dashboard_cache_path, get_log_file_path
 
 
 class CentralJSONLogger:

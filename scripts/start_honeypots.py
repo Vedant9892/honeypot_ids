@@ -13,7 +13,7 @@ from honeypot_ids.honeypots.ftp.ftp_honeypot import start_ftp_honeypot
 from honeypot_ids.honeypots.http.web_honeypot import start_http_honeypot
 from honeypot_ids.honeypots.ransomware.file_monitor import start_file_monitor
 from honeypot_ids.honeypots.ssh.ssh_honeypot import start_ssh_honeypot
-from honeypot_ids.logging.log_config import ensure_runtime_directories, load_project_config
+from honeypot_ids.log_system.log_config import ensure_runtime_directories, load_project_config
 
 
 def main() -> None:

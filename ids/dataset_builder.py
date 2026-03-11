@@ -12,7 +12,7 @@ if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from honeypot_ids.ids.feature_extraction import FEATURE_COLUMNS, build_rate_context, extract_event_features
-from honeypot_ids.logging.log_config import get_log_file_path, load_project_config, resolve_project_path
+from honeypot_ids.log_system.log_config import get_log_file_path, load_project_config, resolve_project_path
 
 
 def load_raw_events(log_path: Path | None = None) -> list[dict[str, Any]]:

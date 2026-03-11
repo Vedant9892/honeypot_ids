@@ -12,7 +12,7 @@ if __package__ in {None, ""}:
 
 from honeypot_ids.ids.feature_extraction import FEATURE_COLUMNS
 from honeypot_ids.ids.models.model import IDSClassifier, build_label_maps
-from honeypot_ids.logging.log_config import load_project_config, resolve_project_path
+from honeypot_ids.log_system.log_config import load_project_config, resolve_project_path
 
 try:
     import torch
