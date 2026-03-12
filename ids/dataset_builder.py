@@ -1,7 +1,7 @@
 """Dataset construction utilities for converting JSONL logs into CSV training data."""
 #dataset_builder.py
 from __future__ import annotations
-
+# This script reads raw JSONL logs from the central log file, extracts relevant features from each event,
 import csv
 import json
 import sys
