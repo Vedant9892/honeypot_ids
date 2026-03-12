@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 import sys
 from typing import Any
-
+# The `IntrusionDetectionEngine` class loads a trained PyTorch model and provides a method to predict the attack type of incoming honeypot events. It includes a fallback heuristic for cases where the model or PyTorch is unavailable, ensuring that predictions can still be made based on the event's attack type. The engine also caches the most recent prediction for dashboard consumption, allowing real-time insights into detected threats.
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 

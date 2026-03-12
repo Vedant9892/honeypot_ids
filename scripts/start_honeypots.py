@@ -1,6 +1,10 @@
 """Start all configured honeypot services in separate processes."""
 
+# This script serves as the main entry point for launching the various honeypot services defined in the project. It reads the configuration to determine which honeypots are enabled, then starts each one in a separate process using Python's multiprocessing module. The script also handles graceful shutdown on keyboard interrupt, ensuring that all honeypot processes are terminated cleanly. This allows researchers to easily deploy and manage multiple honeypot services simultaneously for data collection and analysis.
+
 from __future__ import annotations
+
+# The script serves as the main entry point for launching the various honeypot services defined in the project. It reads the configuration to determine which honeypots are enabled, then starts each one in a separate process using Python's multiprocessing module. The script also handles graceful shutdown on keyboard interrupt, ensuring that all honeypot processes are terminated cleanly. This allows researchers to easily deploy and manage multiple honeypot services simultaneously for data collection and analysis.
 
 import multiprocessing
 import sys
