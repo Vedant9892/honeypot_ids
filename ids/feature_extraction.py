@@ -18,6 +18,8 @@ FEATURE_COLUMNS = [
     "file_modification_rate",
 ]
 
+# The `label` column is derived from the `attack_type` field in the raw event, with common benign activity types mapped to "benign" for training purposes.
+
 
 def parse_timestamp(value: str | None) -> datetime:
     """Parse an ISO timestamp, defaulting to the current UTC time when invalid."""
