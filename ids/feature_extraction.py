@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+# This module defines the core feature extraction logic that transforms raw honeypot events into structured feature vectors for model training and inference. It includes functions to parse timestamps, count special characters in payloads, infer labels from attack types, and build contextual rate features based on recent event history. The main function `extract_event_features` combines these utilities to produce a flat dictionary of features for each event, which can be easily exported to CSV or fed into a machine learning model.
+
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from typing import Any
