@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import json
+import importlib.util
 import multiprocessing
 import os
+from queue import Empty
 import sys
 import threading
 import time
+import traceback
 from collections import Counter, deque
 from dataclasses import dataclass
 from pathlib import Path
@@ -52,9 +55,30 @@ class HoneypotRuntime:
     target: Callable[[], None]
     process: multiprocessing.Process | None = None
     started_at: float | None = None
+    last_exitcode: int | None = None
+    last_error: str | None = None
 
     def is_running(self) -> bool:
         return bool(self.process and self.process.is_alive())
+
+
+def _run_service_entrypoint(
+    service_name: str,
+    target: Callable[[], None],
+    error_queue: multiprocessing.Queue,
+) -> None:
+    """Run a service entrypoint and report startup errors to the parent process."""
+    try:
+        target()
+    except Exception as exc:  # pylint: disable=broad-except
+        error_queue.put(
+            {
+                "service": service_name,
+                "message": str(exc),
+                "traceback": traceback.format_exc(),
+            }
+        )
+        raise
 
 
 class HoneypotControlGUI:
@@ -80,6 +104,8 @@ class HoneypotControlGUI:
             "http": HoneypotRuntime("http", start_http_honeypot),
             "ransomware": HoneypotRuntime("ransomware", start_file_monitor),
         }
+        self.service_error_queue: multiprocessing.Queue = multiprocessing.Queue()
+        self.dependency_issues = self._detect_dependency_issues()
 
         self.log_offset = 0
         self.events: deque[dict[str, Any]] = deque(maxlen=5000)
@@ -243,12 +269,29 @@ class HoneypotControlGUI:
         ttk.Label(right_panel, textvariable=self.log_path_var, wraplength=430).pack(anchor="w", pady=(8, 2))
 
     def _service_detail(self, service: str) -> str:
+        if service in self.dependency_issues:
+            missing = ", ".join(self.dependency_issues[service])
+            return f"missing dependencies: {missing}"
+
         port = self.port_config.get(service)
         if service == "ransomware":
             return f"watching: {self.decoy_path}"
         if port:
             return f"listening on port {port}"
         return "configured"
+
+    def _detect_dependency_issues(self) -> dict[str, list[str]]:
+        service_dependencies = {
+            "http": ["flask"],
+            "ftp": ["pyftpdlib"],
+            "ransomware": ["watchdog"],
+        }
+        issues: dict[str, list[str]] = {}
+        for service, dependencies in service_dependencies.items():
+            missing = [module for module in dependencies if importlib.util.find_spec(module) is None]
+            if missing:
+                issues[service] = missing
+        return issues
 
     def _bootstrap_log_state(self) -> None:
         self.log_file_path.parent.mkdir(parents=True, exist_ok=True)
@@ -258,10 +301,29 @@ class HoneypotControlGUI:
             self.log_offset = 0
 
     def _schedule_update(self) -> None:
+        self._consume_service_errors()
         self._sync_process_states()
         self._poll_new_logs()
         self._update_summary_labels()
         self.root.after(1000, self._schedule_update)
+
+    def _consume_service_errors(self) -> None:
+        while True:
+            try:
+                error = self.service_error_queue.get_nowait()
+            except Empty:
+                return
+            except (EOFError, OSError):
+                return
+
+            service = str(error.get("service", ""))
+            runtime = self.runtimes.get(service)
+            if runtime is None:
+                continue
+
+            message = str(error.get("message", "unknown startup error"))
+            trace = str(error.get("traceback", "")).strip()
+            runtime.last_error = f"{message} | {trace.splitlines()[-1] if trace else ''}".strip(" |")
 
     def _sync_process_states(self) -> None:
         active_count = 0
@@ -270,11 +332,20 @@ class HoneypotControlGUI:
                 active_count += 1
                 uptime = int(time.time() - (runtime.started_at or time.time()))
                 self.status_badge_vars[name].set(f"Running ({uptime}s)")
+                self.status_detail_vars[name].set(self._service_detail(name))
             else:
-                self.status_badge_vars[name].set("Stopped")
                 if runtime.process is not None and not runtime.process.is_alive():
+                    runtime.last_exitcode = runtime.process.exitcode
                     runtime.process = None
                     runtime.started_at = None
+
+                if runtime.last_exitcode not in {None, 0}:
+                    self.status_badge_vars[name].set(f"Crashed ({runtime.last_exitcode})")
+                    detail = runtime.last_error or self._service_detail(name)
+                    self.status_detail_vars[name].set(f"last error: {detail}")
+                else:
+                    self.status_badge_vars[name].set("Stopped")
+                    self.status_detail_vars[name].set(self._service_detail(name))
         self.status_count_var.set(f"Active: {active_count} / {len(self.runtimes)}")
 
     def _poll_new_logs(self) -> None:
@@ -383,7 +454,21 @@ class HoneypotControlGUI:
         if runtime.is_running():
             return
 
-        process = multiprocessing.Process(name=f"{service}_honeypot", target=runtime.target)
+        if service in self.dependency_issues:
+            missing = ", ".join(self.dependency_issues[service])
+            messagebox.showerror("Missing Dependency", f"{service} requires: {missing}")
+            runtime.last_error = f"missing dependencies: {missing}"
+            runtime.last_exitcode = 1
+            self._sync_process_states()
+            return
+
+        runtime.last_error = None
+        runtime.last_exitcode = None
+        process = multiprocessing.Process(
+            name=f"{service}_honeypot",
+            target=_run_service_entrypoint,
+            args=(service, runtime.target, self.service_error_queue),
+        )
         process.start()
         runtime.process = process
         runtime.started_at = time.time()
@@ -404,6 +489,7 @@ class HoneypotControlGUI:
 
         runtime.process = None
         runtime.started_at = None
+        runtime.last_exitcode = 0
         self._sync_process_states()
 
     def start_all(self) -> None:
