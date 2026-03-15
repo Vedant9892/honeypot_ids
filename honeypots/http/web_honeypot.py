@@ -171,7 +171,7 @@ def start_http_honeypot() -> None:
     ports = load_port_config().get("ports", {})
     http_config = config.get("honeypots", {}).get("http", {})
     host = http_config.get("host", "0.0.0.0")
-    port = int(ports.get("http", 8080))
+    port = int(ports.get("http", 5000))
     app.run(host=host, port=port, debug=False)
 
 

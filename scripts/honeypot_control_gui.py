@@ -295,9 +295,25 @@ class HoneypotControlGUI:
 
     def _bootstrap_log_state(self) -> None:
         self.log_file_path.parent.mkdir(parents=True, exist_ok=True)
-        if self.log_file_path.exists():
+        if not self.log_file_path.exists():
+            self.log_offset = 0
+            return
+
+        try:
+            with self.log_file_path.open("r", encoding="utf-8") as handle:
+                lines = handle.read().splitlines()
+            for line in lines[-250:]:
+                raw = line.strip()
+                if not raw:
+                    continue
+                try:
+                    event = json.loads(raw)
+                except json.JSONDecodeError:
+                    continue
+                self.events.append(event)
             self.log_offset = self.log_file_path.stat().st_size
-        else:
+            self.refresh_log_table()
+        except OSError:
             self.log_offset = 0
 
     def _schedule_update(self) -> None:
@@ -450,6 +466,7 @@ class HoneypotControlGUI:
         self.details_text.insert("", END, values=("metadata", json.dumps(metadata, ensure_ascii=True)))
 
     def start_service(self, service: str) -> None:
+        self.dependency_issues = self._detect_dependency_issues()
         runtime = self.runtimes[service]
         if runtime.is_running():
             return
